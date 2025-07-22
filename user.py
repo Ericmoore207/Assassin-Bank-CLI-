@@ -11,9 +11,6 @@ class User:
         self.balance = balance
         self.transactions = [] # transactions if transactions is not None else []
 
-    def hash_data(self, data):
-        """Hash the user's password using SHA-256."""
-        return hashlib.sha256(data.encode()).hexdigest() 
     
     def to_dict(self):
         """Convert the User object to a dictionary."""
