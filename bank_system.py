@@ -202,7 +202,116 @@ class BankSystem:
         print('Exiting Login...')
         time.sleep(3)
         print('Exiting Login Done!')
+
+    def view_balance(self, user):
+        """View the balance of the logged-in user."""
+        print('\n' + '*' * 35)
+        print('== 🏦 Assassin Bank View Balance ==')
+        print('*' * 35)
+        print(f'💰 Your current balance is: ${user.balance:.2f}')
+        input('\nPress Enter to continue...')
+
+
+    def deposit(self, user):
+        """Deposit money into the user's account."""
+        print('\n' + '*' * 35)
+        print('== 🏦 Assassin Bank Deposit 💰 ==')
+        print('*' * 35)
+
+        amount = input('Enter the amount to deposit: $').strip()
+
+        if not amount.isdigit() or float(amount) <= 0:
+            print('❌ Invalid amount.')
+            return
         
+
+        description = input('Enter a transation description: ')
+
+        confirm = input('Is this correct? (y/n): ').strip().lower()
+        if confirm != 'y':
+            print('❌ Deposit cancelled.')
+            return
+
+        amount = float(amount)
+        username = user.username
+        self.users[username]['balance'] += amount   
+        user.transactions.append({
+            'type': 'Deposit',
+            'amount': amount,
+            'description': description,
+            'date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+        self.users[username]['transactions'].append(user.transactions[-1])
+        self.save_users()
+        user.balance = self.users[username]['balance']
+
+        print('Depositing...')
+        time.sleep(3)
+        print(f'✅ Successfully deposited ${amount:.2f}. New balance: ${self.users[username]["balance"]:.2f}')
+        time.sleep(2)
+
+        input('\nPress Enter to continue...')
+
+    def withdraw(self, user):
+        username = user.username
+        """Withdraw money from the user's account."""
+        print('\n' + '*' * 35)
+        print('== 🏦 Assassin Bank Withdraw ==')
+        print('*' * 35)
+        attempt = 0
+        MAX_ATTEMPT = 3
+
+        amount = input('Enter the amount to withdraw: $')
+        if not amount.isdigit() or float(amount) <= 0:
+            print('❌ Invalid amount.')
+            return
+        
+        description = input('Enter a transation description: ')
+
+        confirm = input('Confirm withdraw  (y/n): ').strip().lower()
+        if confirm != 'y':
+            print('❌ Withdraw cancelled.')
+            return
+        
+        while True:
+            if attempt < MAX_ATTEMPT:
+                pin = getpass('Enter your 4-digit PIN: ')
+                hash_pin = hashlib.sha256(pin.encode()).hexdigest()
+                if hash_pin != self.users[username]['pin']:
+                    print('❌ Incorrect PIN.\n')
+                    attempt += 1
+                    continue
+                    
+                
+                amount = float(amount)
+                if amount > self.users[username]['balance']:
+                    print('❌ Insufficient funds.\n')
+                    return 
+
+
+                self.users[username]['balance'] -= amount
+                user.transactions.append({
+                    'type': 'Withdraw',
+                    'amount': amount,
+                    'description': description,
+                    'date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                })
+                self.users[username]['transactions'].append(user.transactions[-1])
+                self.save_users()   
+                user.balance = self.users[username]['balance']
+
+                print('Processing...')
+                time.sleep(3)
+                print(f'✅ Successfully withdrew ${amount:.2f}. New balance: ${self.users[username]["balance"]:.2f}')
+                time.sleep(2)
+                input('\nPress Enter to continue...')
+                break
+            else:
+                print('❌ To many try account locked \n')
+                input('\nPress Enter to continue...')
+                break
+
+
 
     def user_dashboard(self, user):
         while True:
